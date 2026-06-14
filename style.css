@@ -1,95 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
+/* =========================
+   Base Reset
+========================= */
+* {
+  box-sizing: border-box;
+}
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #0f0f0f;
-      color: #f2f2f2;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: #f2f2f2;
+  line-height: 1.5;
+}
 
-    header {
-      padding: 40px;
-      text-align: center;
-      background: #1a1a1a;
-    }
+/* =========================
+   Header
+========================= */
+header {
+  padding: 40px 20px;
+  text-align: center;
+  background: #1a1a1a;
+  border-bottom: 1px solid #222;
+}
 
-    h1 {
-      margin: 0;
-      font-size: 36px;
-    }
+header h1 {
+  margin: 0;
+  font-size: 36px;
+}
 
-    p {
-      color: #bbb;
-    }
+header p {
+  margin-top: 10px;
+  color: #bbb;
+}
 
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
-      background: #141414;
-      flex-wrap: wrap;
-    }
+/* =========================
+   Navigation Bar
+========================= */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #141414;
+  border-bottom: 1px solid #222;
+  padding: 12px 10px;
+}
 
-    nav a {
-      color: #f2f2f2;
-      text-decoration: none;
-      padding: 10px 15px;
-      border: 1px solid #333;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
+.nav-inner {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-    nav a:hover {
-      background: #333;
-    }
+.nav-inner a {
+  color: #f2f2f2;
+  text-decoration: none;
+  padding: 10px 14px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  transition: 0.2s;
+}
 
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 20px;
-      text-align: center;
-    }
+.nav-inner a:hover {
+  background: #333;
+}
 
-    .card {
-      background: #1a1a1a;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-  </style>
-</head>
+/* =========================
+   Layout Container
+========================= */
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
 
-<body>
+/* =========================
+   Content Cards
+========================= */
+.card {
+  background: #1a1a1a;
+  border: 1px solid #222;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
 
-  <header>
-    <h1>My Website</h1>
-    <p>Projects, personal work, and photography</p>
-  </header>
+/* =========================
+   Image Grid System
+========================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
 
-  <nav>
-    <a href="projects/">Projects</a>
-    <a href="personal-projects/">Personal Projects</a>
-    <a href="my-pics/">My Pics</a>
-  </nav>
+.grid img {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
 
-  <div class="container">
-    <div class="card">
-      <h2>Welcome</h2>
-      <p>This site contains my work, experiments, and personal media.</p>
-    </div>
+.grid img:hover {
+  transform: scale(1.03);
+}
 
-    <div class="card">
-      <h2>Navigation</h2>
-      <p>Use the menu above to explore different sections.</p>
-    </div>
-  </div>
+/* =========================
+   Lightbox (image expand)
+========================= */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
 
-</body>
-</html>
+.lightbox.show {
+  display: flex;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
+/* =========================
+   Mobile adjustments
+========================= */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 28px;
+  }
+
+  .container {
+    margin: 20px auto;
+  }
+}

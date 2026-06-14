@@ -1,41 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Website</title>
-  <link rel="stylesheet" href="/style.css">
+  <title>Home</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #222;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      background: #f0f0f0;
+      padding: 10px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      background: #eee;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* ADMIN BUTTON */
+    .admin-link {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      opacity: 0.4;
+      cursor: pointer;
+    }
+
+    .admin-link:hover {
+      opacity: 1;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
   <h1>My Website</h1>
-  <p>Projects, personal work, and images</p>
 </header>
 
-<div class="topbar">
-  <div class="nav-inner">
-    <a href="/">Home</a>
-    <a href="/projects/">Projects</a>
-    <a href="/personal-projects/">Personal Projects</a>
-    <a href="/my-pics/">My Pics</a>
+<nav>
+  <a href="/projects/">Projects</a>
+  <a href="/my-pics/">Gallery</a>
+  <a href="/personal-projects/">Adult Projects</a>
+</nav>
+
+<div class="content">
+  <h2>Welcome</h2>
+  <p>This is my page for some pictures of projects I have made.</p>
+
+  <div class="grid">
+    <div class="card">Section 1</div>
+    <div class="card">Section 2</div>
+    <div class="card">Section 3</div>
   </div>
 </div>
 
-<div class="container">
-
-  <div class="card">
-    <h2>Welcome</h2>
-    <p>Main hub for all content.</p>
-  </div>
-
-  <div class="card">
-    <h2>Navigation</h2>
-    <p>Use the menu above to browse sections.</p>
-  </div>
-
+<!-- ADMIN ENTRY -->
+<div class="admin-link" onclick="goAdmin()">
+  admin
 </div>
+
+<script>
+function goAdmin() {
+  window.location.href = "/admin";
+}
+</script>
 
 </body>
 </html>

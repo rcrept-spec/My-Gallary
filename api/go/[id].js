@@ -1,9 +1,45 @@
+function detectBot(req, ip, ua) {
+  let score = 0;
+
+  const userAgent = (ua || "").toLowerCase();
+
+  const botPatterns = [
+    "bot",
+    "crawl",
+    "spider",
+    "slurp",
+    "preview",
+    "headless",
+    "curl",
+    "wget"
+  ];
+
+  // missing UA
+  if (!ua) score += 3;
+
+  // bot keywords
+  if (botPatterns.some(p => userAgent.includes(p))) {
+    score += 5;
+  }
+
+  // no referrer
+  if (!req.headers["referer"]) score += 1;
+
+  // invalid / local IP
+  if (!ip || ip.startsWith("127.") || ip === "::1") {
+    score += 3;
+  }
+
+  return {
+    is_bot: score >= 5,
+    bot_score: score
+  };
+}
+
 export default async function handler(req, res) {
   const { id } = req.query;
 
-  // ---------------------------
-  // 1. Get IP safely
-  // ---------------------------
+  // ---------------- IP ----------------
   const ipRaw =
     req.headers["x-forwarded-for"] ||
     req.headers["x-real-ip"] ||
@@ -12,24 +48,19 @@ export default async function handler(req, res) {
 
   const ip = ipRaw.split(",")[0].trim();
 
-  // ignore local/dev IPs
-  const isLocal =
+  const cleanIp =
     !ip ||
     ip === "::1" ||
     ip.startsWith("127.") ||
-    ip.startsWith("::ffff:127.");
+    ip.startsWith("::ffff:127.")
+      ? null
+      : ip;
 
-  const cleanIp = isLocal ? null : ip;
-
-  // ---------------------------
-  // 2. User metadata
-  // ---------------------------
+  // ---------------- metadata ----------------
   const ua = req.headers["user-agent"] || null;
   const ref = req.headers["referer"] || "direct";
 
-  // ---------------------------
-  // 3. Geo lookup (only if valid IP)
-  // ---------------------------
+  // ---------------- geo ----------------
   let geo = {};
 
   if (cleanIp) {
@@ -41,22 +72,20 @@ export default async function handler(req, res) {
       if (geoRes.ok) {
         geo = await geoRes.json();
       }
-    } catch (err) {
-      console.log("Geo lookup failed:", err);
+    } catch (e) {
+      console.log("Geo lookup failed:", e);
     }
   }
 
-  // ---------------------------
-  // 4. Normalize values
-  // ---------------------------
   const country = geo.country_name || null;
   const region = geo.region || null;
   const city = geo.city || null;
   const timezone = geo.timezone || null;
 
-  // ---------------------------
-  // 5. Send to Supabase
-  // ---------------------------
+  // ---------------- bot detection ----------------
+  const bot = detectBot(req, cleanIp, ua);
+
+  // ---------------- supabase insert ----------------
   try {
     await fetch(`${process.env.SUPABASE_URL}/rest/v1/clicks`, {
       method: "POST",
@@ -74,16 +103,16 @@ export default async function handler(req, res) {
         city,
         timezone,
         user_agent: ua,
-        referrer: ref
+        referrer: ref,
+        is_bot: bot.is_bot,
+        bot_score: bot.bot_score
       })
     });
   } catch (err) {
     console.log("Supabase insert error:", err);
   }
 
-  // ---------------------------
-  // 6. Redirect targets
-  // ---------------------------
+  // ---------------- redirect ----------------
   const links = {
     pro_001: "/projects/",
     gal_001: "/my-pics/",

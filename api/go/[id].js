@@ -1,32 +1,22 @@
-export default async function handler(req, res) {
-  const { id } = req.query;
+const ip =
+  req.headers["x-forwarded-for"] ||
+  req.socket.remoteAddress;
 
-  const payload = {
-    link_id: id
-  };
+const ua = req.headers["user-agent"];
+const ref = req.headers["referer"] || "direct";
 
-  const response = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/clicks`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": process.env.SUPABASE_KEY,
-        "Authorization": `Bearer ${process.env.SUPABASE_KEY}`,
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify(payload)
-    }
-  );
+const tz = req.headers["x-vercel-ip-timezone"] || null;
 
-  const text = await response.text();
+const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+const geo = await geoRes.json();
 
-  console.log("Supabase status:", response.status);
-  console.log("Supabase response:", text);
-
-  res.writeHead(302, {
-    Location: "/"
-  });
-
-  res.end();
-}
+const payload = {
+  link_id: id,
+  ip,
+  country: geo.country_name,
+  region: geo.region,
+  city: geo.city,
+  timezone: tz || geo.timezone,
+  user_agent: ua,
+  referrer: ref
+};

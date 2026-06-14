@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tracking Dashboard</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #333;
+      color: white;
+      text-align: left;
+    }
+
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Click Tracking Dashboard</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Link</th>
+      <th>Country</th>
+      <th>Region</th>
+      <th>City</th>
+      <th>Timezone</th>
+      <th>IP</th>
+      <th>Referrer</th>
+      <th>User Agent</th>
+    </tr>
+  </thead>
+
+  <tbody id="rows"></tbody>
+</table>
+
+<script>
+async function load() {
+  const res = await fetch(
+    "https://binkfreyivymomsuhtiw.supabase.co/rest/v1/clicks?select=*&order=created_at.desc"
+  );
+
+  const data = await res.json();
+
+  const rows = document.getElementById("rows");
+  rows.innerHTML = "";
+
+  data.forEach(r => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${r.link_id || ""}</td>
+      <td>${r.country || ""}</td>
+      <td>${r.region || ""}</td>
+      <td>${r.city || ""}</td>
+      <td>${r.timezone || ""}</td>
+      <td>${r.ip || ""}</td>
+      <td>${r.referrer || ""}</td>
+      <td>${r.user_agent || ""}</td>
+    `;
+
+    rows.appendChild(tr);
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>

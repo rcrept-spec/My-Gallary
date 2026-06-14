@@ -1,10 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Site</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Website</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #0f0f0f;
+      color: #f2f2f2;
+    }
+
+    header {
+      padding: 40px;
+      text-align: center;
+      background: #1a1a1a;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 36px;
+    }
+
+    p {
+      color: #bbb;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      background: #141414;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: #f2f2f2;
+      text-decoration: none;
+      padding: 10px 15px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+
+    nav a:hover {
+      background: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .card {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>My Website</h1>
-  <p>live update test.</p>
+
+  <header>
+    <h1>My Website</h1>
+    <p>Projects, personal work, and photography</p>
+  </header>
+
+  <nav>
+    <a href="projects/">Projects</a>
+    <a href="personal-projects/">Personal Projects</a>
+    <a href="my-pics/">My Pics</a>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Welcome</h2>
+      <p>This site contains my work, experiments, and personal media.</p>
+    </div>
+
+    <div class="card">
+      <h2>Navigation</h2>
+      <p>Use the menu above to explore different sections.</p>
+    </div>
+  </div>
+
 </body>
 </html>

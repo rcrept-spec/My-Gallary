@@ -4,14 +4,16 @@
   <title>Home</title>
 
   <style>
+    /* ---------------- CORE THEME ---------------- */
     body {
-      font-family: Arial;
       margin: 0;
-      padding: 0;
+      font-family: Arial;
+      background: #111;
+      color: #eee;
     }
 
     header {
-      background: #222;
+      background: #1a1a1a;
       color: white;
       padding: 15px;
       text-align: center;
@@ -19,41 +21,45 @@
 
     nav {
       display: flex;
-      gap: 15px;
       justify-content: center;
-      background: #f0f0f0;
+      gap: 15px;
+      background: #1e1e1e;
       padding: 10px;
     }
 
     nav a {
+      color: #ddd;
       text-decoration: none;
-      color: #333;
+    }
+
+    nav a:hover {
+      color: white;
     }
 
     .content {
       padding: 20px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
     .card {
-      background: #eee;
-      padding: 20px;
-      text-align: center;
+      background: #222;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
     }
 
-    /* ADMIN BUTTON */
+    /* ---------------- ADMIN BUTTON ---------------- */
     .admin-link {
       position: fixed;
-      bottom: 10px;
-      right: 10px;
+      bottom: 12px;
+      right: 12px;
+      z-index: 9999;
+      background: #333;
+      color: white;
+      padding: 6px 10px;
       font-size: 12px;
-      opacity: 0.4;
+      border-radius: 4px;
       cursor: pointer;
+      opacity: 0.85;
     }
 
     .admin-link:hover {
@@ -76,25 +82,16 @@
 
 <div class="content">
   <h2>Welcome</h2>
-  <p>This is my page for some pictures of projects I have made.</p>
 
-  <div class="grid">
-    <div class="card">Section 1</div>
-    <div class="card">Section 2</div>
-    <div class="card">Section 3</div>
+  <div class="card">
+    Main landing content
   </div>
 </div>
 
-<!-- ADMIN ENTRY -->
-<div class="admin-link" onclick="goAdmin()">
+<!-- ADMIN BUTTON -->
+<div class="admin-link" onclick="window.location.href='/admin'">
   admin
 </div>
-
-<script>
-function goAdmin() {
-  window.location.href = "/admin";
-}
-</script>
 
 </body>
 </html>

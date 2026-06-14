@@ -2,18 +2,24 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   // ---------------------------
-  // 1. Get + clean IP
+  // 1. Get IP safely
   // ---------------------------
   const ipRaw =
     req.headers["x-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
     req.socket.remoteAddress ||
     "";
 
   const ip = ipRaw.split(",")[0].trim();
 
-  const cleanIp = ip.startsWith("::ffff:")
-    ? ip.replace("::ffff:", "")
-    : ip;
+  // ignore local/dev IPs
+  const isLocal =
+    !ip ||
+    ip === "::1" ||
+    ip.startsWith("127.") ||
+    ip.startsWith("::ffff:127.");
+
+  const cleanIp = isLocal ? null : ip;
 
   // ---------------------------
   // 2. User metadata
@@ -22,31 +28,31 @@ export default async function handler(req, res) {
   const ref = req.headers["referer"] || "direct";
 
   // ---------------------------
-  // 3. Geo lookup (safe fail)
+  // 3. Geo lookup (only if valid IP)
   // ---------------------------
   let geo = {};
 
-  try {
-    const geoRes = await fetch(
-      `https://ipapi.co/${cleanIp}/json/`
-    );
+  if (cleanIp) {
+    try {
+      const geoRes = await fetch(
+        `https://ipapi.co/${cleanIp}/json/`
+      );
 
-    if (geoRes.ok) {
-      geo = await geoRes.json();
-    } else {
-      console.log("Geo API error:", geoRes.status);
+      if (geoRes.ok) {
+        geo = await geoRes.json();
+      }
+    } catch (err) {
+      console.log("Geo lookup failed:", err);
     }
-  } catch (err) {
-    console.log("Geo lookup failed:", err);
   }
 
   // ---------------------------
-  // 4. Normalize fields (prevents blanks)
+  // 4. Normalize values
   // ---------------------------
-  const country = geo.country_name || "unknown";
-  const region = geo.region || "unknown";
-  const city = geo.city || "unknown";
-  const timezone = geo.timezone || "unknown";
+  const country = geo.country_name || null;
+  const region = geo.region || null;
+  const city = geo.city || null;
+  const timezone = geo.timezone || null;
 
   // ---------------------------
   // 5. Send to Supabase
@@ -76,7 +82,7 @@ export default async function handler(req, res) {
   }
 
   // ---------------------------
-  // 6. Redirect map
+  // 6. Redirect targets
   // ---------------------------
   const links = {
     pro_001: "/projects/",

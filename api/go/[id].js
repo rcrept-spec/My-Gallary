@@ -1,22 +1,11 @@
-const ip =
-  req.headers["x-forwarded-for"] ||
-  req.socket.remoteAddress;
+export default async function handler(req, res) {
+  const { id } = req.query;
 
-const ua = req.headers["user-agent"];
-const ref = req.headers["referer"] || "direct";
+  console.log("HIT:", id);
 
-const tz = req.headers["x-vercel-ip-timezone"] || null;
+  res.writeHead(302, {
+    Location: "/?link=" + id
+  });
 
-const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-const geo = await geoRes.json();
-
-const payload = {
-  link_id: id,
-  ip,
-  country: geo.country_name,
-  region: geo.region,
-  city: geo.city,
-  timezone: tz || geo.timezone,
-  user_agent: ua,
-  referrer: ref
-};
+  res.end();
+}

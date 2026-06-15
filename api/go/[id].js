@@ -14,18 +14,14 @@ function detectBot(req, ip, ua) {
     "wget"
   ];
 
-  // missing UA
   if (!ua) score += 3;
 
-  // bot keywords
   if (botPatterns.some(p => userAgent.includes(p))) {
     score += 5;
   }
 
-  // no referrer
   if (!req.headers["referer"]) score += 1;
 
-  // invalid / local IP
   if (!ip || ip.startsWith("127.") || ip === "::1") {
     score += 3;
   }
@@ -60,24 +56,52 @@ export default async function handler(req, res) {
   const ua = req.headers["user-agent"] || null;
   const ref = req.headers["referer"] || "direct";
 
-  // ---------------- geo ----------------
-  let geo = {};
+  // ---------------- EDGE GEO FIRST ----------------
+  let geo = {
+    country:
+      req.headers["cf-ipcountry"] ||
+      req.headers["x-vercel-ip-country"] ||
+      null,
 
-  if (cleanIp) {
+    region:
+      req.headers["cf-region"] ||
+      req.headers["x-vercel-ip-region"] ||
+      null,
+
+    city:
+      req.headers["cf-ipcity"] ||
+      req.headers["x-vercel-ip-city"] ||
+      null,
+
+    timezone:
+      req.headers["cf-timezone"] ||
+      req.headers["x-vercel-ip-timezone"] ||
+      null
+  };
+
+  // ---------------- FALLBACK (only if missing key data) ----------------
+  const needsFallback =
+    !geo.country || !geo.timezone;
+
+  if (cleanIp && needsFallback) {
     try {
-      const geoRes = await fetch(
-        `https://ipapi.co/${cleanIp}/json/`
+      const resGeo = await fetch(
+        `https://ipinfo.io/${cleanIp}/json`
       );
 
-      if (geoRes.ok) {
-        geo = await geoRes.json();
-      }
+      const data = await resGeo.json();
+
+      geo.country = geo.country || data.country || null;
+      geo.region = geo.region || data.region || null;
+      geo.city = geo.city || data.city || null;
+      geo.timezone = geo.timezone || data.timezone || null;
+
     } catch (e) {
-      console.log("Geo lookup failed:", e);
+      console.log("Fallback geo failed:", e);
     }
   }
 
-  const country = geo.country_name || null;
+  const country = geo.country || null;
   const region = geo.region || null;
   const city = geo.city || null;
   const timezone = geo.timezone || null;
@@ -91,9 +115,9 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": process.env.SUPABASE_KEY,
-        "Authorization": `Bearer ${process.env.SUPABASE_KEY}`,
-        "Prefer": "return=minimal"
+        apikey: process.env.SUPABASE_KEY,
+        Authorization: `Bearer ${process.env.SUPABASE_KEY}`,
+        Prefer: "return=minimal"
       },
       body: JSON.stringify({
         link_id: id,
@@ -112,7 +136,7 @@ export default async function handler(req, res) {
     console.log("Supabase insert error:", err);
   }
 
- // ---------------- redirect ----------------
+  // ---------------- redirect ----------------
   const routes = {
     home_001: "/",
     pro_001: "/projects/",

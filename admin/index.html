@@ -128,6 +128,20 @@
 </table>
 
 <script>
+const saved = JSON.parse(sessionStorage.getItem("adminAuth") || "null");
+
+let adminPassword = saved?.pass;
+
+if (!adminPassword || Date.now() - saved.time > 30 * 60 * 1000) {
+  adminPassword = prompt("Admin Password");
+
+  if (!adminPassword) window.location.href = "/";
+
+  sessionStorage.setItem("adminAuth", JSON.stringify({
+    pass: adminPassword,
+    time: Date.now()
+  }));
+}
 
 let rawData = [];
 let filteredData = [];
@@ -141,7 +155,18 @@ function normalize(v) {
 --------------------------*/
 async function loadData() {
   try {
-    const res = await fetch("/api/clicks");
+    const res = await fetch("/api/clicks", {
+  headers: {
+    "x-admin-password": adminPassword
+  }
+});
+
+if (res.status === 401) {
+  sessionStorage.removeItem("adminPassword");
+  alert("Unauthorized");
+  location.reload();
+  return;
+}
     rawData = await res.json();
 
     console.log("Loaded rows:", rawData.length);
@@ -162,6 +187,8 @@ async function loadData() {
    FILTER OPTIONS
 --------------------------*/
 function buildFilters(data) {
+  document.getElementById("linkFilter").innerHTML = `<option value="">All Links</option>`;
+document.getElementById("countryFilter").innerHTML = `<option value="">All Countries</option>`;
   const linkSet = new Set();
   const countrySet = new Set();
 
@@ -268,7 +295,18 @@ function renderTable(data) {
 --------------------------*/
 async function loadStats() {
   try {
-    const res = await fetch("/api/stats");
+    const res = await fetch("/api/stats", {
+  headers: {
+    "x-admin-password": adminPassword
+  }
+});
+
+if (res.status === 401) {
+  sessionStorage.removeItem("adminPassword");
+  alert("Unauthorized");
+  location.reload();
+  return;
+}
     const data = await res.json();
 
     document.getElementById("statsBox").innerText =

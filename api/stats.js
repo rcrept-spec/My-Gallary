@@ -1,4 +1,10 @@
 export default async function handler(req, res) {
+  const password = req.headers["x-admin-password"];
+
+  if (password !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
   const response = await fetch(

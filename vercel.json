@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/h",
+      "destination": "/api/go/home_001"
+    },
+    {
+      "source": "/p",
+      "destination": "/api/go/pro_001"
+    },
+    {
+      "source": "/r",
+      "destination": "/api/go/per_001"
+    },
+    {
+      "source": "/g",
+      "destination": "/api/go/gal_001"
+    }
+  ]
+}

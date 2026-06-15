@@ -112,15 +112,22 @@ export default async function handler(req, res) {
     console.log("Supabase insert error:", err);
   }
 
-  // ---------------- redirect ----------------
-  const links = {
+ // ---------------- redirect ----------------
+  const routes = {
+    home_001: "/",
     pro_001: "/projects/",
-    gal_001: "/my-pics/",
-    per_001: "/personal-projects/"
+    per_001: "/personal-projects/",
+    gal_001: "/my-pics/"
   };
 
+  const target = routes[id];
+
+  if (!target) {
+    return res.status(404).send("Invalid link");
+  }
+
   res.writeHead(302, {
-    Location: links[id] || "/"
+    Location: target
   });
 
   res.end();

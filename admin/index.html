@@ -53,10 +53,30 @@
       font-size: 13px;
       color: #ccc;
     }
+
+    /* HOME BUTTON */
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    .home-btn:hover {
+      background: #444;
+    }
   </style>
 </head>
 
 <body>
+
+<button class="home-btn" onclick="window.location.href='/'">Home</button>
 
 <h2>Analytics Dashboard</h2>
 
@@ -77,12 +97,20 @@
     <option value="bot">Bots Only</option>
   </select>
 
+  <select id="dateFilter">
+    <option value="">All Time</option>
+    <option value="1">Last 24h</option>
+    <option value="7">Last 7 days</option>
+    <option value="30">Last 30 days</option>
+  </select>
+
   <button onclick="applyFilters()">Apply</button>
 </div>
 
 <table>
   <thead>
     <tr>
+      <th>Date</th>
       <th>Link</th>
       <th>Country</th>
       <th>Region</th>
@@ -109,7 +137,7 @@ function normalize(v) {
 }
 
 /* -------------------------
-   LOAD DATA (FROM API)
+   LOAD DATA
 --------------------------*/
 async function loadData() {
   try {
@@ -126,12 +154,12 @@ async function loadData() {
     console.error(err);
 
     document.getElementById("rows").innerHTML =
-      `<tr><td colspan="10">Failed to load data</td></tr>`;
+      `<tr><td colspan="11">Failed to load data</td></tr>`;
   }
 }
 
 /* -------------------------
-   BUILD FILTER OPTIONS
+   FILTER OPTIONS
 --------------------------*/
 function buildFilters(data) {
   const linkSet = new Set();
@@ -171,6 +199,7 @@ function applyFilters() {
   const link = document.getElementById("linkFilter").value;
   const country = document.getElementById("countryFilter").value;
   const bot = document.getElementById("botFilter").value;
+  const days = document.getElementById("dateFilter").value;
 
   filteredData = rawData;
 
@@ -190,18 +219,26 @@ function applyFilters() {
     filteredData = filteredData.filter(r => r.is_bot);
   }
 
+  if (days) {
+    const cutoff = Date.now() - (parseInt(days) * 24 * 60 * 60 * 1000);
+
+    filteredData = filteredData.filter(r =>
+      new Date(r.created_at).getTime() >= cutoff
+    );
+  }
+
   renderTable(filteredData);
 }
 
 /* -------------------------
-   RENDER TABLE
+   TABLE RENDER
 --------------------------*/
 function renderTable(data) {
   const rows = document.getElementById("rows");
   rows.innerHTML = "";
 
   if (!data.length) {
-    rows.innerHTML = `<tr><td colspan="10">No data found</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="11">No data found</td></tr>`;
     return;
   }
 
@@ -209,6 +246,7 @@ function renderTable(data) {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
+      <td>${new Date(r.created_at).toLocaleString()}</td>
       <td>${normalize(r.link_id)}</td>
       <td>${normalize(r.country)}</td>
       <td>${normalize(r.region)}</td>
@@ -226,7 +264,7 @@ function renderTable(data) {
 }
 
 /* -------------------------
-   STATS (FROM YOUR API)
+   STATS
 --------------------------*/
 async function loadStats() {
   try {
@@ -247,7 +285,6 @@ async function loadStats() {
    START
 --------------------------*/
 loadData();
-
 setInterval(loadData, 5000);
 
 </script>

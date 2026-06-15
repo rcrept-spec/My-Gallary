@@ -100,7 +100,6 @@
 </table>
 
 <script>
-const SUPABASE_URL = "https://binkfreyivymomsuhtiw.supabase.co";
 
 let rawData = [];
 let filteredData = [];
@@ -109,18 +108,31 @@ function normalize(v) {
   return (v ?? "").toString();
 }
 
+/* -------------------------
+   LOAD DATA (FROM API)
+--------------------------*/
 async function loadData() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/clicks?select=*&order=created_at.desc`
-  );
+  try {
+    const res = await fetch("/api/clicks");
+    rawData = await res.json();
 
-  rawData = await res.json();
+    console.log("Loaded rows:", rawData.length);
 
-  buildFilters(rawData);
-  applyFilters();
-  loadStats();
+    buildFilters(rawData);
+    applyFilters();
+    loadStats();
+
+  } catch (err) {
+    console.error(err);
+
+    document.getElementById("rows").innerHTML =
+      `<tr><td colspan="10">Failed to load data</td></tr>`;
+  }
 }
 
+/* -------------------------
+   BUILD FILTER OPTIONS
+--------------------------*/
 function buildFilters(data) {
   const linkSet = new Set();
   const countrySet = new Set();
@@ -152,6 +164,9 @@ function buildFilters(data) {
   });
 }
 
+/* -------------------------
+   APPLY FILTERS
+--------------------------*/
 function applyFilters() {
   const link = document.getElementById("linkFilter").value;
   const country = document.getElementById("countryFilter").value;
@@ -178,6 +193,9 @@ function applyFilters() {
   renderTable(filteredData);
 }
 
+/* -------------------------
+   RENDER TABLE
+--------------------------*/
 function renderTable(data) {
   const rows = document.getElementById("rows");
   rows.innerHTML = "";
@@ -200,13 +218,16 @@ function renderTable(data) {
       <td>${normalize(r.referrer)}</td>
       <td>${normalize(r.user_agent)}</td>
       <td>${r.is_bot ? "YES" : "NO"}</td>
-      <td>${r.bot_score ?? 0}</td>
+      <td>${r.bot_score || 0}</td>
     `;
 
     rows.appendChild(tr);
   });
 }
 
+/* -------------------------
+   STATS (FROM YOUR API)
+--------------------------*/
 async function loadStats() {
   try {
     const res = await fetch("/api/stats");
@@ -216,16 +237,19 @@ async function loadStats() {
       Object.entries(data)
         .map(([k, v]) => `${k}: ${v}`)
         .join(" | ");
+
   } catch {
     document.getElementById("statsBox").innerText = "Stats error";
   }
 }
 
+/* -------------------------
+   START
+--------------------------*/
 loadData();
 
-setInterval(() => {
-  loadData();
-}, 5000);
+setInterval(loadData, 5000);
+
 </script>
 
 </body>

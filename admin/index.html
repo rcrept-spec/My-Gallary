@@ -7,64 +7,64 @@
     body {
       font-family: Arial;
       padding: 20px;
-      background: #f5f5f5;
+      background: #111;
+      color: #eee;
     }
 
-    h2 { margin-bottom: 10px; }
- 
-    .controls {
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .panel {
+      background: #1e1e1e;
+      padding: 10px;
       margin-bottom: 15px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      border-radius: 6px;
     }
 
     select, button {
       padding: 6px;
+      margin-right: 8px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: #1a1a1a;
     }
 
     th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #333;
       padding: 8px;
       font-size: 13px;
     }
 
     th {
       background: #222;
-      color: white;
-      text-align: left;
+      color: #fff;
     }
 
     tr:nth-child(even) {
-      background: #f2f2f2;
+      background: #151515;
     }
 
     .stats {
-      margin: 10px 0 20px 0;
-      padding: 10px;
-      background: white;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #ccc;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Click Tracking Dashboard</h2>
+<h2>Analytics Dashboard</h2>
 
-<div class="stats" id="statsBox">Loading stats...</div>
+<div class="panel">
+  <div class="stats" id="statsBox">Loading stats...</div>
 
-<div class="controls">
   <select id="linkFilter">
     <option value="">All Links</option>
-    <option value="pro_001">Projects</option>
-    <option value="gal_001">Gallery</option>
-    <option value="per_001">Personal</option>
   </select>
 
   <select id="countryFilter">
@@ -77,7 +77,7 @@
     <option value="bot">Bots Only</option>
   </select>
 
-  <button onclick="load()">Apply</button>
+  <button onclick="applyFilters()">Apply</button>
 </div>
 
 <table>
@@ -100,118 +100,131 @@
 </table>
 
 <script>
-/* -----------------------------
-   ADMIN PASSWORD (CHANGE THIS)
-------------------------------*/
-const ADMIN_PASSWORD = "tracker";
-
-/* -----------------------------
-   SIMPLE LOGIN GATE
-------------------------------*/
-const saved = localStorage.getItem("admin_auth");
-
-if (saved !== ADMIN_PASSWORD) {
-  const input = prompt("Enter admin password:");
-
-  if (input !== ADMIN_PASSWORD) {
-    document.body.innerHTML = "<h2>Access Denied</h2>";
-    throw new Error("Unauthorized");
-  }
-
-  localStorage.setItem("admin_auth", input);
-}
-
-/* -----------------------------
-   CONFIG
-------------------------------*/
 const SUPABASE_URL = "https://binkfreyivymomsuhtiw.supabase.co";
 
-/* -----------------------------
-   LOAD STATS
-------------------------------*/
+let rawData = [];
+let filteredData = [];
+
+function normalize(v) {
+  return (v ?? "").toString();
+}
+
+async function loadData() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/clicks?select=*&order=created_at.desc`
+  );
+
+  rawData = await res.json();
+
+  buildFilters(rawData);
+  applyFilters();
+  loadStats();
+}
+
+function buildFilters(data) {
+  const linkSet = new Set();
+  const countrySet = new Set();
+
+  data.forEach(r => {
+    if (r.link_id) linkSet.add(r.link_id);
+    if (r.country) countrySet.add(r.country);
+  });
+
+  const linkFilter = document.getElementById("linkFilter");
+  const countryFilter = document.getElementById("countryFilter");
+
+  linkSet.forEach(v => {
+    if (![...linkFilter.options].some(o => o.value === v)) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      linkFilter.appendChild(opt);
+    }
+  });
+
+  countrySet.forEach(v => {
+    if (![...countryFilter.options].some(o => o.value === v)) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      countryFilter.appendChild(opt);
+    }
+  });
+}
+
+function applyFilters() {
+  const link = document.getElementById("linkFilter").value;
+  const country = document.getElementById("countryFilter").value;
+  const bot = document.getElementById("botFilter").value;
+
+  filteredData = rawData;
+
+  if (link) {
+    filteredData = filteredData.filter(r => r.link_id === link);
+  }
+
+  if (country) {
+    filteredData = filteredData.filter(r => r.country === country);
+  }
+
+  if (bot === "human") {
+    filteredData = filteredData.filter(r => !r.is_bot);
+  }
+
+  if (bot === "bot") {
+    filteredData = filteredData.filter(r => r.is_bot);
+  }
+
+  renderTable(filteredData);
+}
+
+function renderTable(data) {
+  const rows = document.getElementById("rows");
+  rows.innerHTML = "";
+
+  if (!data.length) {
+    rows.innerHTML = `<tr><td colspan="10">No data found</td></tr>`;
+    return;
+  }
+
+  data.forEach(r => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${normalize(r.link_id)}</td>
+      <td>${normalize(r.country)}</td>
+      <td>${normalize(r.region)}</td>
+      <td>${normalize(r.city)}</td>
+      <td>${normalize(r.timezone)}</td>
+      <td>${normalize(r.ip)}</td>
+      <td>${normalize(r.referrer)}</td>
+      <td>${normalize(r.user_agent)}</td>
+      <td>${r.is_bot ? "YES" : "NO"}</td>
+      <td>${r.bot_score ?? 0}</td>
+    `;
+
+    rows.appendChild(tr);
+  });
+}
+
 async function loadStats() {
   try {
     const res = await fetch("/api/stats");
     const data = await res.json();
 
-    let html = "<b>Clicks per link:</b><br>";
-    for (const key in data) {
-      html += `${key}: ${data[key]}<br>`;
-    }
-
-    document.getElementById("statsBox").innerHTML = html;
+    document.getElementById("statsBox").innerText =
+      Object.entries(data)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(" | ");
   } catch {
-    document.getElementById("statsBox").innerHTML = "Stats failed";
+    document.getElementById("statsBox").innerText = "Stats error";
   }
 }
 
-/* -----------------------------
-   LOAD TABLE DATA
-------------------------------*/
-async function load() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/clicks?select=*&order=created_at.desc`
-  );
-
-  let data = await res.json();
-
-  const linkFilter = document.getElementById("linkFilter").value;
-  const countryFilter = document.getElementById("countryFilter").value;
-  const botFilter = document.getElementById("botFilter").value;
-
-  if (linkFilter) data = data.filter(d => d.link_id === linkFilter);
-  if (countryFilter) data = data.filter(d => d.country === countryFilter);
-  if (botFilter === "human") data = data.filter(d => !d.is_bot);
-  if (botFilter === "bot") data = data.filter(d => d.is_bot);
-
-  const rows = document.getElementById("rows");
-  rows.innerHTML = "";
-
-  const countries = new Set();
-
-  data.forEach(r => {
-    if (r.country) countries.add(r.country);
-
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${r.link_id || ""}</td>
-      <td>${r.country || ""}</td>
-      <td>${r.region || ""}</td>
-      <td>${r.city || ""}</td>
-      <td>${r.timezone || ""}</td>
-      <td>${r.ip || ""}</td>
-      <td>${r.referrer || ""}</td>
-      <td>${r.user_agent || ""}</td>
-      <td>${r.is_bot ? "YES" : "NO"}</td>
-      <td>${r.bot_score || 0}</td>
-    `;
-
-    rows.appendChild(tr);
-  });
-
-  const countrySelect = document.getElementById("countryFilter");
-  const existing = new Set([...countrySelect.options].map(o => o.value));
-
-  countries.forEach(c => {
-    if (!existing.has(c)) {
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      countrySelect.appendChild(opt);
-    }
-  });
-}
-
-/* -----------------------------
-   INIT
-------------------------------*/
-loadStats();
-load();
+loadData();
 
 setInterval(() => {
-  loadStats();
-  load();
+  loadData();
 }, 5000);
 </script>
 

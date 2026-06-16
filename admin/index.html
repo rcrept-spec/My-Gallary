@@ -171,8 +171,12 @@ if (res.status === 401) {
 
     console.log("Loaded rows:", rawData.length);
 
-    buildFilters(rawData);
-    applyFilters();
+if (!window.filtersBuilt) {
+  buildFilters(rawData);
+  window.filtersBuilt = true;
+}
+
+applyFilters();
     loadStats();
 
   } catch (err) {

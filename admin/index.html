@@ -327,7 +327,17 @@ if (res.status === 401) {
    START
 --------------------------*/
 loadData();
-setInterval(loadData, 5000);
+setInterval(() => {
+  const link = document.getElementById("linkFilter").value;
+  const country = document.getElementById("countryFilter").value;
+  const bot = document.getElementById("botFilter").value;
+  const days = document.getElementById("dateFilter").value;
+
+  if (!link && !country && !bot && !days) {
+    loadData();
+    loadStats();
+  }
+}, 10000);
 
 </script>
 
